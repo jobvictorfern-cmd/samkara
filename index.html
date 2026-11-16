@@ -449,9 +449,10 @@
     <div class="panel-heading"><h2 id="product-title">Detalhes da peça</h2><button type="button" class="icon-button close-panel" aria-label="Fechar detalhes"><svg aria-hidden="true"><use href="#i-close"/></svg></button></div>
     <div class="product-detail">
       <div class="product-visual">
-        <img id="product-image" alt="" width="800" height="1200" hidden>
+        <button class="product-photo" id="product-photo" type="button" aria-label="Ver foto em tela cheia" aria-haspopup="dialog" aria-controls="photo-viewer">
+          <img id="product-image" alt="" width="800" height="1200">
+        </button>
         <div class="product-gallery" id="product-gallery" role="group" aria-label="Fotos da peça" hidden></div>
-        <a id="product-original" class="text-link" target="_blank" rel="noopener">Ampliar foto <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg><span class="visually-hidden">, abre em nova aba</span></a>
       </div>
       <div class="product-detail-actions">
         <p class="detail-description" id="product-description"></p>
@@ -478,6 +479,11 @@
         </form>
       </div>
     </div>
+  </dialog>
+
+  <dialog class="photo-viewer" id="photo-viewer" aria-label="Foto da peça em tela cheia">
+    <button type="button" class="icon-button close-panel" aria-label="Fechar foto"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
+    <img id="full-product-image" alt="" width="800" height="1200">
   </dialog>
 
   <dialog class="contact-dialog" id="contact" aria-labelledby="contact-title">

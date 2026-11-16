@@ -287,12 +287,37 @@ dialog::backdrop { background: #24171ac0; }
 .cart-help { margin-block: 17px; color: var(--muted); font-size: 1.03rem; }
 .product-dialog { width: min(770px, calc(100% - 28px)); }
 .product-detail { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(14px, 3vw, 26px); }
-.product-visual > img { width: 100%; max-height: min(55dvh, 450px); object-fit: contain; background: #eae3dd; }
+.product-photo { display: block; width: 100%; padding: 0; border: 0; background: #eae3dd; cursor: zoom-in; }
+.product-photo img { width: 100%; max-height: min(55dvh, 450px); object-fit: contain; }
 .product-gallery { display: flex; gap: 8px; margin-top: 8px; }
 .product-gallery button { padding: 2px; border: 1px solid var(--line); background: transparent; }
 .product-gallery button[aria-pressed="true"] { border-color: var(--wine); }
 .product-gallery img { width: 40px; height: 52px; object-fit: cover; }
-.product-visual > .text-link { min-height: 37px; }
+.photo-viewer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: calc(62px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  border: 0;
+  background: #201719;
+  color: var(--white);
+}
+.photo-viewer[open] { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; }
+.photo-viewer img { width: auto; height: auto; max-width: 100%; max-height: 100%; cursor: zoom-out; }
+.photo-viewer .close-panel {
+  position: absolute;
+  top: calc(9px + env(safe-area-inset-top));
+  right: calc(10px + env(safe-area-inset-right));
+  width: 44px;
+  height: 44px;
+  background: #ffffff1a;
+}
+.photo-viewer .close-panel:hover { background: #ffffff33; color: var(--white); }
+.photo-viewer .close-panel:focus-visible { outline-color: var(--white); }
 .detail-description { margin-bottom: 10px; color: var(--muted); font-size: 1.12rem; }
 .detail-pricing { margin-bottom: 15px; color: var(--wine); }
 .size-guide { color: var(--muted); font-size: .99rem; }
@@ -370,7 +395,7 @@ dialog::backdrop { background: #24171ac0; }
   .favorite { top: 7px; right: 7px; }
   .product-dialog { padding: 14px; }
   .product-detail { grid-template-columns: 1fr; }
-  .product-visual > img { max-height: 36dvh; }
+  .product-photo img { max-height: 36dvh; }
   .contact-dialog { padding: 16px; }
 }
 

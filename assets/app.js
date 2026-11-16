@@ -131,6 +131,18 @@
     });
   }
 
+  const photoViewer = get("photo-viewer");
+  const fullProductImage = get("full-product-image");
+  get("product-photo").addEventListener("click", () => {
+    const photo = get("product-image");
+    fullProductImage.src = photo.src;
+    fullProductImage.alt = photo.alt;
+    photoViewer.showModal();
+  });
+  photoViewer.addEventListener("click", (event) => {
+    if (event.target === photoViewer || event.target === fullProductImage) photoViewer.close();
+  });
+
   all("[data-open]").forEach((button) => {
     button.setAttribute("aria-haspopup", "dialog");
     button.setAttribute("aria-controls", button.dataset.open);
@@ -228,11 +240,8 @@
 
     gallery.replaceChildren();
     gallery.hidden = photos.length < 2;
-    const fullPhoto = get("product-original");
     photo.src = product.photo;
     photo.alt = product.description;
-    photo.hidden = false;
-    fullPhoto.href = product.photo;
 
     if (gallery.hidden) return;
 
@@ -245,7 +254,6 @@
       button.append(element("img", { src: source.replace(".webp", "-320.webp"), alt: "" }));
       button.addEventListener("click", () => {
         photo.src = source;
-        fullPhoto.href = source;
         photo.alt = index === 0 ? product.description : `${product.name}, ângulo ${index + 1}`;
         for (const thumbnail of gallery.children) {
           thumbnail.setAttribute("aria-pressed", String(thumbnail === button));
