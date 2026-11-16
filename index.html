@@ -484,6 +484,9 @@
   <dialog class="photo-viewer" id="photo-viewer" aria-label="Foto da peça em tela cheia">
     <button type="button" class="icon-button close-panel" aria-label="Fechar foto"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
     <img id="full-product-image" alt="" width="800" height="1200">
+    <button type="button" class="icon-button photo-step" id="photo-previous" aria-label="Foto anterior" hidden><svg aria-hidden="true"><use href="#i-chevron"/></svg></button>
+    <button type="button" class="icon-button photo-step" id="photo-next" aria-label="Próxima foto" hidden><svg aria-hidden="true"><use href="#i-chevron"/></svg></button>
+    <span class="visually-hidden" id="photo-status" role="status"></span>
   </dialog>
 
   <dialog class="contact-dialog" id="contact" aria-labelledby="contact-title">

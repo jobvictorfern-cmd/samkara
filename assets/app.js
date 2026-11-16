@@ -132,16 +132,48 @@
   }
 
   const photoViewer = get("photo-viewer");
+  const productImage = get("product-image");
   const fullProductImage = get("full-product-image");
+  const photoSteps = all(".photo-step", photoViewer);
+  let productPhotos = [];
+  let selectedPhotoIndex = 0;
+  let swipeStart = null;
+
+  function stepProductPhoto(direction) {
+    const length = productPhotos.length;
+    if (length > 1) selectProductPhoto((selectedPhotoIndex + direction + length) % length);
+  }
+
   get("product-photo").addEventListener("click", () => {
-    const photo = get("product-image");
-    fullProductImage.src = photo.src;
-    fullProductImage.alt = photo.alt;
+    for (const button of photoSteps) button.hidden = productPhotos.length < 2;
     photoViewer.showModal();
+    selectProductPhoto(selectedPhotoIndex);
   });
+  get("photo-previous").addEventListener("click", () => stepProductPhoto(-1));
+  get("photo-next").addEventListener("click", () => stepProductPhoto(1));
   photoViewer.addEventListener("click", (event) => {
     if (event.target === photoViewer || event.target === fullProductImage) photoViewer.close();
   });
+  photoViewer.addEventListener("keydown", (event) => {
+    if (productPhotos.length < 2 || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
+    event.preventDefault();
+    stepProductPhoto(event.key === "ArrowLeft" ? -1 : 1);
+  });
+  photoViewer.addEventListener("touchstart", (event) => {
+    swipeStart = productPhotos.length > 1 && event.touches.length === 1 && !event.target.closest("button")
+      ? event.touches[0] : null;
+  }, { passive: true });
+  photoViewer.addEventListener("touchcancel", () => { swipeStart = null; });
+  photoViewer.addEventListener("touchend", (event) => {
+    if (!swipeStart) return;
+    const { clientX, clientY } = event.changedTouches[0];
+    const dx = clientX - swipeStart.clientX;
+    const dy = clientY - swipeStart.clientY;
+    swipeStart = null;
+    if (Math.abs(dx) < 45 || Math.abs(dx) <= Math.abs(dy)) return;
+    event.preventDefault();
+    stepProductPhoto(dx < 0 ? 1 : -1);
+  }, { passive: false });
 
   all("[data-open]").forEach((button) => {
     button.setAttribute("aria-haspopup", "dialog");
@@ -234,32 +266,40 @@
   }
 
   function renderProductPhotos(product) {
-    const photo = get("product-image");
     const gallery = get("product-gallery");
-    const photos = [product.photo, ...product.gallery];
+    productPhotos = [product.photo, ...product.gallery].map((source, index) => ({
+      source,
+      description: index === 0 ? product.description : `${product.name}, ângulo ${index + 1}`,
+    }));
 
     gallery.replaceChildren();
-    gallery.hidden = photos.length < 2;
-    photo.src = product.photo;
-    photo.alt = product.description;
+    gallery.hidden = productPhotos.length < 2;
+    if (!gallery.hidden) {
+      for (const [index, { source }] of productPhotos.entries()) {
+        const button = element("button", {
+          type: "button",
+          "aria-label": `Ver foto ${index + 1} de ${productPhotos.length}`,
+        });
+        button.append(element("img", { src: source.replace(".webp", "-320.webp"), alt: "" }));
+        button.addEventListener("click", () => selectProductPhoto(index));
+        gallery.append(button);
+      }
+    }
+    selectProductPhoto(0);
+  }
 
-    if (gallery.hidden) return;
-
-    for (const [index, source] of photos.entries()) {
-      const button = element("button", {
-        type: "button",
-        "aria-label": `Ver foto ${index + 1} de ${photos.length}`,
-        "aria-pressed": String(index === 0),
-      });
-      button.append(element("img", { src: source.replace(".webp", "-320.webp"), alt: "" }));
-      button.addEventListener("click", () => {
-        photo.src = source;
-        photo.alt = index === 0 ? product.description : `${product.name}, ângulo ${index + 1}`;
-        for (const thumbnail of gallery.children) {
-          thumbnail.setAttribute("aria-pressed", String(thumbnail === button));
-        }
-      });
-      gallery.append(button);
+  function selectProductPhoto(index) {
+    const { source, description } = productPhotos[index];
+    selectedPhotoIndex = index;
+    productImage.src = source;
+    productImage.alt = description;
+    for (const [thumbnailIndex, thumbnail] of all("#product-gallery button").entries()) {
+      thumbnail.setAttribute("aria-pressed", String(thumbnailIndex === index));
+    }
+    if (photoViewer.open) {
+      fullProductImage.src = source;
+      fullProductImage.alt = description;
+      get("photo-status").textContent = `Foto ${index + 1} de ${productPhotos.length}`;
     }
   }
 
