@@ -344,6 +344,7 @@ dialog::backdrop { background: #24171ac0; }
 
 @media (pointer: coarse) {
   .icon-button, .favorite { width: 44px; height: 44px; }
+  .photo-viewer .photo-step { display: none; }
   .category, .store-actions .outline-button, .store-actions .text-link { min-height: 44px; }
   .quantity button { width: 44px; height: 44px; }
 }
