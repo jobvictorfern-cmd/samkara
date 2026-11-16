@@ -459,11 +459,24 @@
   }
 
   const siteHeader = document.querySelector(".site-header");
+  const hero = document.querySelector(".hero");
+  const heroCopy = hero.querySelector(".hero-copy");
   function updateHeader() {
-    siteHeader.classList.toggle("is-scrolled", window.scrollY > 24);
+    const headerBounds = siteHeader.getBoundingClientRect();
+    const heroBounds = hero.getBoundingClientRect();
+    const copyBounds = heroCopy.getBoundingClientRect();
+    const pastHero = heroBounds.bottom <= headerBounds.bottom;
+    const headerCenter = headerBounds.top + headerBounds.height / 2;
+    const darkHeroDepth = Math.min(heroBounds.height / 2, 286);
+
+    siteHeader.classList.toggle("is-past-hero", pastHero);
+    siteHeader.classList.toggle("is-over-dark-hero", !pastHero && heroBounds.bottom - headerCenter <= darkHeroDepth);
+    const overlap = Math.min(copyBounds.height, Math.max(0, headerBounds.bottom - copyBounds.top));
+    heroCopy.style.setProperty("--hero-header-overlap", `${overlap}px`);
   }
 
   window.addEventListener("scroll", updateHeader, { passive: true });
+  window.addEventListener("resize", updateHeader);
   window.addEventListener("hashchange", updateNavigation);
   updateHeader();
   renderCatalog();
