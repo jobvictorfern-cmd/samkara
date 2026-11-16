@@ -458,7 +458,14 @@
     });
   }
 
+  const siteHeader = document.querySelector(".site-header");
+  function updateHeader() {
+    siteHeader.classList.toggle("is-scrolled", window.scrollY > 24);
+  }
+
+  window.addEventListener("scroll", updateHeader, { passive: true });
   window.addEventListener("hashchange", updateNavigation);
+  updateHeader();
   renderCatalog();
   renderCart();
 })();
