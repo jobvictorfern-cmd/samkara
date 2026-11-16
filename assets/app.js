@@ -4,11 +4,9 @@
   const catalog = get("catalogo");
   const panels = all("dialog");
   const categories = all(".category[data-category]");
-  const categorySlug = new URLSearchParams(location.search).get("categoria");
+  const route = new URLSearchParams(location.search);
+  const categorySlug = route.get("categoria");
   const pageCategory = categories.find((link) => link.dataset.category && link.dataset.category === categorySlug);
-  const categoryPage = Boolean(pageCategory) || categorySlug === "todas";
-  const categoryFilter = pageCategory?.dataset.category || "";
-  const openFavorites = !categoryPage && location.hash === "#favoritos";
   const storageKey = "samkara-vitrine-v1";
   const previewLimit = 8;
   const sizeSelect = get("product-size");
@@ -39,6 +37,15 @@
       favorite: card.querySelector(".favorite"),
     }];
   }));
+  const productId = route.get("produto");
+  const pageProduct = products.get(productId);
+  const hasCategory = Boolean(pageCategory) || categorySlug === "todas";
+  const categoryPage = !pageProduct && hasCategory;
+  const standalonePage = categoryPage || Boolean(pageProduct);
+  const categoryFilter = categoryPage ? pageCategory?.dataset.category || "" : "";
+  const openFavorites = !standalonePage && location.hash === "#favoritos";
+  const initialQuery = pageProduct ? "" : (route.get("busca") || "").slice(0, 80).trim();
+  const catalogReturn = hasCategory ? `?${new URLSearchParams({ categoria: categorySlug })}` : "index.html#catalogo";
 
   function loadShoppingState() {
     const saved = readState();
@@ -52,19 +59,22 @@
   }
 
   let { favoriteIds, cart } = loadShoppingState();
-  let filters = { category: categoryFilter, query: "", favorites: openFavorites };
+  let filters = { category: categoryFilter, query: initialQuery, favorites: openFavorites };
   let showAll = false;
-  let selectedProduct = "";
   let toastTimeout;
 
-  if (categoryPage) {
-    document.body.classList.add("category-page");
-    document.title = `${pageCategory?.textContent || "A coleção"} | SAMKARA`;
-    for (const section of all("main > section:not(#catalogo)")) section.hidden = true;
+  if (standalonePage) {
+    document.body.classList.add("standalone-page");
+    const pageSection = pageProduct ? get("produto") : catalog;
+    for (const section of all("main > section")) section.hidden = section !== pageSection;
     for (const link of all('a[href="#inicio"], a[href="#categorias"], a[href="#lojas"], a[href="#como-comprar"], a[data-reset]')) {
       link.setAttribute("href", `index.html${link.hash}`);
     }
     for (const link of all("[data-favorites]")) link.setAttribute("href", "index.html#favoritos");
+  }
+  if (categoryPage) {
+    document.body.classList.add("category-page");
+    document.title = `${pageCategory?.textContent || "A coleção"} | SAMKARA`;
     get("category-back").hidden = false;
     get("catalog-title").setAttribute("aria-level", "1");
     get("no-products").querySelector("button span").textContent = "Limpar busca";
@@ -188,6 +198,11 @@
     swipeStart = productPhotos.length > 1 && event.touches.length === 1 && !event.target.closest("button")
       ? event.touches[0] : null;
   }, { passive: true });
+  photoViewer.addEventListener("touchmove", (event) => {
+    if (!swipeStart || !event.cancelable) return;
+    const { clientX, clientY } = event.touches[0];
+    if (Math.abs(clientX - swipeStart.clientX) > Math.abs(clientY - swipeStart.clientY)) event.preventDefault();
+  }, { passive: false });
   photoViewer.addEventListener("touchcancel", () => { swipeStart = null; });
   photoViewer.addEventListener("touchend", (event) => {
     if (!swipeStart) return;
@@ -196,7 +211,7 @@
     const dy = clientY - swipeStart.clientY;
     swipeStart = null;
     if (Math.abs(dx) < 45 || Math.abs(dx) <= Math.abs(dy)) return;
-    event.preventDefault();
+    if (event.cancelable) event.preventDefault();
     stepProductPhoto(dx < 0 ? 1 : -1);
   }, { passive: false });
 
@@ -212,7 +227,7 @@
   all(".panel-links a").forEach((link) => link.addEventListener("click", () => get("menu").close()));
 
   all("[data-reset]").forEach((control) => control.addEventListener("click", (event) => {
-    if (categoryPage && control.matches("a")) return;
+    if (standalonePage && control.matches("a")) return;
     filters = { category: categoryFilter, query: "", favorites: false };
     showAll = false;
     get("search-field").value = "";
@@ -230,14 +245,21 @@
 
   get("search-form").addEventListener("submit", (event) => {
     event.preventDefault();
-    filters = { category: categoryFilter, query: get("search-field").value.trim(), favorites: false };
+    const query = get("search-field").value.trim();
+    if (pageProduct) {
+      const destination = new URL(catalogReturn, location.href);
+      if (query) destination.searchParams.set("busca", query);
+      location.assign(destination.href);
+      return;
+    }
+    filters = { category: categoryFilter, query, favorites: false };
     renderCatalog();
     get("search").close();
     showCatalog();
   });
 
   all("[data-favorites]").forEach((link) => link.addEventListener("click", (event) => {
-    if (categoryPage) return;
+    if (standalonePage) return;
     event.preventDefault();
     filters = { category: "", query: "", favorites: true };
     get("search-field").value = "";
@@ -257,21 +279,10 @@
       notify(removing ? "Peça removida dos favoritos." : "Peça salva nos favoritos.");
     });
 
-    all("[data-product]", product.card).forEach((control) => {
-      control.setAttribute("aria-haspopup", "dialog");
-      control.addEventListener("click", (event) => {
-        event.preventDefault();
-        selectedProduct = id;
-        get("product-title").textContent = product.name;
-        get("product-description").textContent = product.description;
-        get("detail-price").textContent = product.price === null ? "Consulte o valor com a loja" : formatPrice(product.price);
-        get("product-order").reset();
-        get("size-guide").open = false;
-        renderProductPhotos(product);
-        openPanel("product-dialog");
-        get("product-dialog").scrollTop = 0;
-      });
-    });
+    if (categoryPage) {
+      const productHref = `?${new URLSearchParams({ produto: id, categoria: categorySlug })}`;
+      for (const link of all("[data-product]", product.card)) link.setAttribute("href", productHref);
+    }
   }
 
   function element(tagName, attributes, content = "") {
@@ -451,19 +462,20 @@
 
   get("product-order").addEventListener("submit", (event) => {
     event.preventDefault();
-    if (!selectedProduct || !sizes.has(sizeSelect.value)) return;
-    updateQuantity(`${selectedProduct}:${sizeSelect.value}`, 1);
+    if (!pageProduct || !sizes.has(sizeSelect.value)) return;
+    updateQuantity(`${productId}:${sizeSelect.value}`, 1);
     openPanel("cart");
   });
 
   get("keep-shopping").addEventListener("click", () => {
     get("cart").close();
-    showCatalog();
+    if (pageProduct) location.assign(catalogReturn);
+    else showCatalog();
   });
   get("order-store").addEventListener("change", updateOrderLink);
 
   function updateNavigation() {
-    const hash = categoryPage ? "#catalogo" : location.hash || "#inicio";
+    const hash = standalonePage ? "#catalogo" : location.hash || "#inicio";
     all(".mobile-nav a").forEach((link) => {
       const favoritesLink = "favorites" in link.dataset;
       const active = hash === "#catalogo"
@@ -501,8 +513,23 @@
     renderCart();
   });
   if (openFavorites) history.replaceState(history.state, "", "#catalogo");
+  if (!pageProduct && route.has("busca")) {
+    const url = new URL(location.href);
+    url.searchParams.delete("busca");
+    history.replaceState(history.state, "", url);
+    get("search-field").value = initialQuery;
+  }
+  if (pageProduct) {
+    document.title = `${pageProduct.name} | SAMKARA`;
+    get("product-back").setAttribute("href", catalogReturn);
+    if (pageCategory) get("product-back").querySelector("span").textContent = `Voltar para ${pageCategory.textContent}`;
+    get("product-title").textContent = pageProduct.name;
+    get("product-description").textContent = pageProduct.description;
+    get("detail-price").textContent = pageProduct.price === null ? "Consulte o valor com a loja" : formatPrice(pageProduct.price);
+    renderProductPhotos(pageProduct);
+  }
   updateHeader();
   renderCatalog();
   renderCart();
-  if (openFavorites) showCatalog();
+  if (openFavorites || (initialQuery && !categoryPage)) showCatalog();
 })();
