@@ -158,6 +158,10 @@ svg { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColo
 .category-card:hover .category-card-label { color: var(--wine); border-color: var(--wine); }
 
 .catalog-heading { align-items: end; }
+.category-page .site-header { margin-bottom: 0; }
+.category-page .catalog { margin-block: clamp(22px, 4vw, 56px) var(--section-space); }
+.category-back { justify-content: flex-start; margin-bottom: 14px; }
+.category-back svg { transform: rotate(180deg); }
 .categories { display: flex; flex-wrap: wrap; gap: 8px; padding-block: 4px 7px; }
 .category { display: inline-flex; align-items: center; padding: 7px 16px; min-height: 38px; border: 1px solid var(--line); border-radius: 99px; font-size: .88rem; font-weight: 600; white-space: nowrap; }
 .category:hover { border-color: #ba9f92; }

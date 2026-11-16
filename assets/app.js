@@ -4,6 +4,11 @@
   const catalog = get("catalogo");
   const panels = all("dialog");
   const categories = all(".category[data-category]");
+  const categorySlug = new URLSearchParams(location.search).get("categoria");
+  const pageCategory = categories.find((link) => link.dataset.category && link.dataset.category === categorySlug);
+  const categoryPage = Boolean(pageCategory) || categorySlug === "todas";
+  const categoryFilter = pageCategory?.dataset.category || "";
+  const openFavorites = !categoryPage && location.hash === "#favoritos";
   const storageKey = "samkara-vitrine-v1";
   const previewLimit = 8;
   const sizeSelect = get("product-size");
@@ -35,17 +40,35 @@
     }];
   }));
 
-  const saved = readState();
-  const favoriteIds = new Set(Array.isArray(saved.favorites) ? saved.favorites.filter((id) => products.has(id)) : []);
-  const cart = new Map(Object.entries(saved.cart || {}).filter(([key, quantity]) => {
-    const [id, size = "", extra] = key.split(":");
-    return products.has(id) && extra === undefined && (size === "" || sizes.has(size))
-      && Number.isInteger(quantity) && quantity > 0 && quantity <= 99;
-  }));
-  let filters = { category: "", query: "", favorites: false };
+  function loadShoppingState() {
+    const saved = readState();
+    const favorites = Array.isArray(saved.favorites) ? saved.favorites.filter((id) => products.has(id)) : [];
+    const cartItems = Object.entries(saved.cart || {}).filter(([key, quantity]) => {
+      const [id, size = "", extra] = key.split(":");
+      return products.has(id) && extra === undefined && (size === "" || sizes.has(size))
+        && Number.isInteger(quantity) && quantity > 0 && quantity <= 99;
+    });
+    return { favoriteIds: new Set(favorites), cart: new Map(cartItems) };
+  }
+
+  let { favoriteIds, cart } = loadShoppingState();
+  let filters = { category: categoryFilter, query: "", favorites: openFavorites };
   let showAll = false;
   let selectedProduct = "";
   let toastTimeout;
+
+  if (categoryPage) {
+    document.body.classList.add("category-page");
+    document.title = `${pageCategory?.textContent || "A coleção"} | SAMKARA`;
+    for (const section of all("main > section:not(#catalogo)")) section.hidden = true;
+    for (const link of all('a[href="#inicio"], a[href="#categorias"], a[href="#lojas"], a[href="#como-comprar"], a[data-reset]')) {
+      link.setAttribute("href", `index.html${link.hash}`);
+    }
+    for (const link of all("[data-favorites]")) link.setAttribute("href", "index.html#favoritos");
+    get("category-back").hidden = false;
+    get("catalog-title").setAttribute("aria-level", "1");
+    get("no-products").querySelector("button span").textContent = "Limpar busca";
+  }
 
   function saveState() {
     try {
@@ -74,7 +97,7 @@
     const words = normalize(filters.query).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
     const category = categories.find((link) => link.dataset.category === filters.category);
     const isFullCatalog = !filters.category && !filters.query && !filters.favorites;
-    const limitResults = isFullCatalog && !showAll;
+    const limitResults = isFullCatalog && !showAll && !categoryPage;
     let count = 0;
 
     for (const [id, product] of products) {
@@ -88,13 +111,15 @@
     }
 
     for (const link of categories) {
-      if (link === category && !filters.query && !filters.favorites) link.setAttribute("aria-current", "true");
+      if (link === category && (categoryPage || (!filters.query && !filters.favorites))) {
+        link.setAttribute("aria-current", categoryPage ? "page" : "true");
+      }
       else link.removeAttribute("aria-current");
     }
 
     get("catalog-title").textContent = filters.favorites
       ? "Favoritos"
-      : filters.query ? "Resultados da busca" : category?.dataset.category ? category.textContent : "A coleção";
+      : pageCategory?.textContent || (filters.query ? "Resultados da busca" : "A coleção");
     const resultCount = `${count} ${count === 1 ? "peça" : "peças"}`;
     const hasMore = limitResults && count > previewLimit;
     get("catalog-more").hidden = !hasMore;
@@ -187,24 +212,14 @@
   all(".panel-links a").forEach((link) => link.addEventListener("click", () => get("menu").close()));
 
   all("[data-reset]").forEach((control) => control.addEventListener("click", (event) => {
-    filters = { category: "", query: "", favorites: false };
+    if (categoryPage && control.matches("a")) return;
+    filters = { category: categoryFilter, query: "", favorites: false };
     showAll = false;
     get("search-field").value = "";
     renderCatalog();
     if (control.closest("#menu")) get("menu").close();
     event.preventDefault();
     showCatalog();
-  }));
-
-  all("[data-category]").forEach((link) => link.addEventListener("click", (event) => {
-    filters = { category: link.dataset.category, query: "", favorites: false };
-    showAll = false;
-    get("search-field").value = "";
-    renderCatalog();
-    if (link.classList.contains("category-card")) {
-      event.preventDefault();
-      showCatalog();
-    }
   }));
 
   get("show-more").addEventListener("click", () => {
@@ -215,13 +230,14 @@
 
   get("search-form").addEventListener("submit", (event) => {
     event.preventDefault();
-    filters = { category: "", query: get("search-field").value.trim(), favorites: false };
+    filters = { category: categoryFilter, query: get("search-field").value.trim(), favorites: false };
     renderCatalog();
     get("search").close();
     showCatalog();
   });
 
   all("[data-favorites]").forEach((link) => link.addEventListener("click", (event) => {
+    if (categoryPage) return;
     event.preventDefault();
     filters = { category: "", query: "", favorites: true };
     get("search-field").value = "";
@@ -447,7 +463,7 @@
   get("order-store").addEventListener("change", updateOrderLink);
 
   function updateNavigation() {
-    const hash = location.hash || "#inicio";
+    const hash = categoryPage ? "#catalogo" : location.hash || "#inicio";
     all(".mobile-nav a").forEach((link) => {
       const favoritesLink = "favorites" in link.dataset;
       const active = hash === "#catalogo"
@@ -478,7 +494,15 @@
   window.addEventListener("scroll", updateHeader, { passive: true });
   window.addEventListener("resize", updateHeader);
   window.addEventListener("hashchange", updateNavigation);
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) return;
+    ({ favoriteIds, cart } = loadShoppingState());
+    renderCatalog();
+    renderCart();
+  });
+  if (openFavorites) history.replaceState(history.state, "", "#catalogo");
   updateHeader();
   renderCatalog();
   renderCart();
+  if (openFavorites) showCatalog();
 })();

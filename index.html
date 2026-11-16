@@ -65,37 +65,37 @@
       </div>
       <ul class="category-grid">
         <li>
-          <a class="category-card" href="#catalogo" data-category="vestidos">
+          <a class="category-card" href="?categoria=vestidos">
             <span class="category-image"><img src="assets/moda-center-10.webp" srcset="assets/moda-center-10-320.webp 320w, assets/moda-center-10-560.webp 560w, assets/moda-center-10.webp 800w" sizes="(min-width: 1400px) 210px, (min-width: 860px) 16vw, 32vw" alt="" width="800" height="1200" loading="lazy" decoding="async"></span>
             <span class="category-card-label">Vestidos <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
           </a>
         </li>
         <li>
-          <a class="category-card" href="#catalogo" data-category="conjuntos">
+          <a class="category-card" href="?categoria=conjuntos">
             <span class="category-image"><img src="assets/moda-center-02.webp" srcset="assets/moda-center-02-320.webp 320w, assets/moda-center-02-560.webp 560w, assets/moda-center-02.webp 800w" sizes="(min-width: 1400px) 210px, (min-width: 860px) 16vw, 32vw" alt="" width="800" height="1200" loading="lazy" decoding="async"></span>
             <span class="category-card-label">Conjuntos <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
           </a>
         </li>
         <li>
-          <a class="category-card" href="#catalogo" data-category="blusas">
+          <a class="category-card" href="?categoria=blusas">
             <span class="category-image"><img src="assets/moda-center-21.webp" srcset="assets/moda-center-21-320.webp 320w, assets/moda-center-21-560.webp 560w, assets/moda-center-21.webp 800w" sizes="(min-width: 1400px) 210px, (min-width: 860px) 16vw, 32vw" alt="" width="800" height="1200" loading="lazy" decoding="async"></span>
             <span class="category-card-label">Blusas <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
           </a>
         </li>
         <li>
-          <a class="category-card" href="#catalogo" data-category="calcas">
+          <a class="category-card" href="?categoria=calcas">
             <span class="category-image"><img src="assets/moda-center-20.webp" srcset="assets/moda-center-20-320.webp 320w, assets/moda-center-20.webp 800w" sizes="(min-width: 1400px) 210px, (min-width: 860px) 16vw, 32vw" alt="" width="800" height="1200" loading="lazy" decoding="async"></span>
             <span class="category-card-label">Calças <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
           </a>
         </li>
         <li>
-          <a class="category-card" href="#catalogo" data-category="macacoes">
+          <a class="category-card" href="?categoria=macacoes">
             <span class="category-image"><img src="assets/moda-center-01.webp" srcset="assets/moda-center-01-320.webp 320w, assets/moda-center-01-560.webp 560w, assets/moda-center-01.webp 800w" sizes="(min-width: 1400px) 210px, (min-width: 860px) 16vw, 32vw" alt="" width="800" height="1200" loading="lazy" decoding="async"></span>
             <span class="category-card-label">Macacões <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
           </a>
         </li>
         <li>
-          <a class="category-card" href="#catalogo" data-category="estampas">
+          <a class="category-card" href="?categoria=estampas">
             <span class="category-image"><img src="assets/moda-center-06.webp" srcset="assets/moda-center-06-320.webp 320w, assets/moda-center-06-560.webp 560w, assets/moda-center-06.webp 800w" sizes="(min-width: 1400px) 210px, (min-width: 860px) 16vw, 32vw" alt="" width="800" height="1200" loading="lazy" decoding="async"></span>
             <span class="category-card-label">Estampas <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
           </a>
@@ -104,6 +104,7 @@
     </section>
 
     <section class="catalog layout" id="catalogo" aria-labelledby="catalog-title">
+      <a class="text-link category-back" id="category-back" href="index.html#categorias" hidden><svg aria-hidden="true"><use href="#i-arrow"/></svg> Todas as categorias</a>
       <div class="section-heading catalog-heading">
         <div>
           <h2 id="catalog-title" tabindex="-1">A coleção</h2>
@@ -112,13 +113,13 @@
         <button class="outline-button catalog-search" type="button" data-open="search"><svg aria-hidden="true"><use href="#i-search"/></svg> Buscar peças</button>
       </div>
       <nav class="categories" aria-label="Filtrar coleção">
-        <a class="category" href="#catalogo" data-category="" aria-current="true">Todas</a>
-        <a class="category" href="#catalogo" data-category="vestidos">Vestidos</a>
-        <a class="category" href="#catalogo" data-category="conjuntos">Conjuntos</a>
-        <a class="category" href="#catalogo" data-category="blusas">Blusas</a>
-        <a class="category" href="#catalogo" data-category="calcas">Calças</a>
-        <a class="category" href="#catalogo" data-category="macacoes">Macacões</a>
-        <a class="category" href="#catalogo" data-category="estampas">Estampas</a>
+        <a class="category" href="?categoria=todas" data-category="" aria-current="true">Todas</a>
+        <a class="category" href="?categoria=vestidos" data-category="vestidos">Vestidos</a>
+        <a class="category" href="?categoria=conjuntos" data-category="conjuntos">Conjuntos</a>
+        <a class="category" href="?categoria=blusas" data-category="blusas">Blusas</a>
+        <a class="category" href="?categoria=calcas" data-category="calcas">Calças</a>
+        <a class="category" href="?categoria=macacoes" data-category="macacoes">Macacões</a>
+        <a class="category" href="?categoria=estampas" data-category="estampas">Estampas</a>
       </nav>
       <p class="catalog-note" id="catalog-note" role="status" aria-atomic="true">19 peças</p>
       <div class="product-grid">
@@ -318,7 +319,7 @@
       </div>
       <div class="empty-state" id="no-products" hidden>
         <p id="no-products-text">Nenhuma peça encontrada.</p>
-        <button type="button" class="outline-button" data-reset>Ver toda a coleção <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        <button type="button" class="outline-button" data-reset><span>Ver toda a coleção</span> <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
       </div>
     </section>
 
